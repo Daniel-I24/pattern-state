@@ -38,7 +38,7 @@ public class DeveloperProjectPanel extends JPanel {
         listaTareas.setBackground(AppTheme.FONDO_PRINCIPAL);
 
         construirUI();
-        refrescar();
+        refrescarSinCallback(); // Usar versión sin callback en el constructor
     }
 
     private void construirUI() {
@@ -108,6 +108,14 @@ public class DeveloperProjectPanel extends JPanel {
         historyPanel.cargarHistorial(proyecto);
         construirListaTareas();
         if (alActualizar != null) alActualizar.run();
+    }
+
+    // Versión sin callback para evitar bucles infinitos en el constructor
+    private void refrescarSinCallback() {
+        barraProgreso.actualizar(proyecto.calcularPorcentajeProgreso());
+        historyPanel.cargarHistorial(proyecto);
+        construirListaTareas();
+        // NO llamar a alActualizar aquí
     }
 
     private void construirListaTareas() {

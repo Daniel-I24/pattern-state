@@ -40,7 +40,7 @@ public class ManagerProjectPanel extends JPanel {
         this.historyPanel   = new HistoryPanel();
 
         construirUI();
-        refrescar();
+        refrescarSinCallback(); // Usar versión sin callback en el constructor
     }
 
     private void construirUI() {
@@ -144,6 +144,28 @@ public class ManagerProjectPanel extends JPanel {
         }
 
         if (alActualizar != null) alActualizar.run();
+    }
+
+    // Versión sin callback para evitar bucles infinitos en el constructor
+    private void refrescarSinCallback() {
+        String estado = proyecto.getEstadoNombre();
+        lblEstado.setText("Estado actual: " + estado);
+        lblEstado.setBackground(AppTheme.colorEstadoProyecto(estado));
+        lblEstado.setOpaque(true);
+
+        barraProgreso.actualizar(proyecto.calcularPorcentajeProgreso());
+
+        construirBotones(estado);
+        historyPanel.cargarHistorial(proyecto);
+        taskPanel.refrescar();
+
+        String msg = proyecto.getUltimoMensaje();
+        if (!msg.isBlank()) {
+            lblMensaje.setText(msg);
+            lblMensaje.setForeground(
+                msg.startsWith("⚠") ? AppTheme.ROJO_ERROR : AppTheme.VERDE_EXITO);
+        }
+        // NO llamar a alActualizar aquí
     }
 
     private void construirBotones(String estado) {

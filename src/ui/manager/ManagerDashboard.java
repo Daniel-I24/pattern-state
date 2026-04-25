@@ -152,7 +152,10 @@ public class ManagerDashboard extends JPanel {
 
     private void seleccionarProyecto() {
         Project proyecto = listaProyectos.getSelectedValue();
-        if (proyecto == null) return;
+        if (proyecto == null) {
+            cardCentral.show(areaCentral, CARD_VACIO);
+            return;
+        }
 
         if (panelDetalle != null) areaCentral.remove(panelDetalle);
 
@@ -160,6 +163,8 @@ public class ManagerDashboard extends JPanel {
                 this::refrescarLista);
         areaCentral.add(panelDetalle, CARD_DETALLE);
         cardCentral.show(areaCentral, CARD_DETALLE);
+        areaCentral.revalidate();
+        areaCentral.repaint();
     }
 
     public void inicializar() {
@@ -176,7 +181,7 @@ public class ManagerDashboard extends JPanel {
             listaProyectos.setSelectedValue(seleccionado, true);
         } else if (!modeloLista.isEmpty()) {
             listaProyectos.setSelectedIndex(0);
-            seleccionarProyecto(); // Forzar mostrar el panel del primer proyecto
+            // NO llamar a seleccionarProyecto() aquí - el listener lo hará automáticamente
         }
         listaProyectos.repaint();
     }
@@ -184,8 +189,10 @@ public class ManagerDashboard extends JPanel {
     private void mostrarDialogoNuevoProyecto() {
         JTextField campoNombre = AppTheme.campoTexto(22);
         JTextArea  campoDesc   = AppTheme.areaTexto(3, 22);
-        AppTheme.aplicarPlaceholder(campoNombre, "Ej: Sistema de facturación v2");
-        AppTheme.aplicarPlaceholder(campoDesc,   "Describe el objetivo del proyecto...");
+        String placeholderNombre = "Ej: Sistema de facturación v2";
+        String placeholderDesc = "Describe el objetivo del proyecto...";
+        AppTheme.aplicarPlaceholder(campoNombre, placeholderNombre);
+        AppTheme.aplicarPlaceholder(campoDesc, placeholderDesc);
 
         JPanel form = new JPanel(new GridLayout(4, 1, 0, 6));
         form.setBackground(AppTheme.FONDO_PANEL);
@@ -201,6 +208,10 @@ public class ManagerDashboard extends JPanel {
 
         String nombre = campoNombre.getText().trim();
         String desc   = campoDesc.getText().trim();
+        
+        // Ignorar si el texto es el placeholder
+        if (nombre.equals(placeholderNombre)) nombre = "";
+        if (desc.equals(placeholderDesc)) desc = "";
 
         if (nombre.isEmpty()) {
             JOptionPane.showMessageDialog(this, "El nombre del proyecto es obligatorio.",
@@ -210,9 +221,14 @@ public class ManagerDashboard extends JPanel {
 
         String creadoPor = SessionManager.getInstance().getUsuarioActivo().getNombre();
         Project nuevo = projectService.crearProyecto(nombre, desc, creadoPor);
+        
+        // Debug: Verificar que el proyecto se creó
+        System.out.println("Proyecto creado: " + nuevo.getNombre());
+        System.out.println("Total de proyectos: " + projectService.obtenerTodos().size());
+        
         modeloLista.addElement(nuevo);
         listaProyectos.setSelectedValue(nuevo, true);
-        // Forzar la selección y mostrar el panel de detalle
-        seleccionarProyecto();
+        
+        // El listener de selección se encargará de mostrar el panel automáticamente
     }
 }

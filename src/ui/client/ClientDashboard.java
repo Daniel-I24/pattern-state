@@ -168,7 +168,7 @@ public class ClientDashboard extends JPanel {
             listaProyectos.setSelectedValue(seleccionado, true);
         } else if (!modeloLista.isEmpty()) {
             listaProyectos.setSelectedIndex(0);
-            seleccionarProyecto(); // Forzar mostrar el panel del primer proyecto
+            // NO llamar a seleccionarProyecto() aquí - el listener lo hará automáticamente
         }
         listaProyectos.repaint();
     }
