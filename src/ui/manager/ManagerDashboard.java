@@ -176,6 +176,7 @@ public class ManagerDashboard extends JPanel {
             listaProyectos.setSelectedValue(seleccionado, true);
         } else if (!modeloLista.isEmpty()) {
             listaProyectos.setSelectedIndex(0);
+            seleccionarProyecto(); // Forzar mostrar el panel del primer proyecto
         }
         listaProyectos.repaint();
     }
@@ -211,5 +212,7 @@ public class ManagerDashboard extends JPanel {
         Project nuevo = projectService.crearProyecto(nombre, desc, creadoPor);
         modeloLista.addElement(nuevo);
         listaProyectos.setSelectedValue(nuevo, true);
+        // Forzar la selección y mostrar el panel de detalle
+        seleccionarProyecto();
     }
 }
