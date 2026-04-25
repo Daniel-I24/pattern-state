@@ -1,67 +1,89 @@
 package auth;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * Servicio de autenticación: maneja el registro e inicio de sesión de usuarios.
- * Los datos se almacenan en memoria durante la ejecución del programa.
+ * Servicio de autenticación.
+ * Solo puede existir un usuario con rol GERENTE en el sistema.
+ * Los datos se almacenan en memoria durante la ejecución.
  */
 public class AuthService {
 
-    // Mapa de correo -> usuario para búsqueda rápida
     private final Map<String, User> usuariosPorCorreo = new HashMap<>();
+    private final Map<String, User> usuariosPorId     = new HashMap<>();
 
     public AuthService() {
         cargarUsuariosPorDefecto();
     }
 
     /**
-     * Usuarios de prueba para facilitar la demostración del sistema.
+     * Usuarios de demo precargados para facilitar las pruebas.
+     * Credenciales del gerente: gerente@demo.com / 1234
      */
     private void cargarUsuariosPorDefecto() {
-        registrar("Ana Torres",    "gerente@demo.com",      "1234", Role.GERENTE);
-        registrar("Luis Pérez",    "dev@demo.com",          "1234", Role.DESARROLLADOR);
-        registrar("María Gómez",   "cliente@demo.com",      "1234", Role.CLIENTE);
+        registrar("Ana Torres",  "gerente@demo.com",  "1234", Role.GERENTE);
+        registrar("Luis Pérez",  "dev1@demo.com",     "1234", Role.DESARROLLADOR);
+        registrar("Sara Ruiz",   "dev2@demo.com",     "1234", Role.DESARROLLADOR);
+        registrar("María Gómez", "cliente@demo.com",  "1234", Role.CLIENTE);
     }
 
     /**
-     * Registra un nuevo usuario si el correo no está en uso.
-     * @return el usuario creado, o null si el correo ya existe
+     * Registra un nuevo usuario aplicando las siguientes reglas:
+     * - El correo no puede estar en uso.
+     * - Solo puede existir un gerente en el sistema.
+     *
+     * @return el usuario creado, o null si no se pudo registrar
      */
     public User registrar(String nombre, String correo, String contrasena, Role rol) {
-        String correoNormalizado = correo.trim().toLowerCase();
-        if (usuariosPorCorreo.containsKey(correoNormalizado)) {
-            return null;
-        }
-        User usuario = new User(UUID.randomUUID().toString(), nombre, correoNormalizado, contrasena, rol);
-        usuariosPorCorreo.put(correoNormalizado, usuario);
+        String correoNorm = correo.trim().toLowerCase();
+
+        if (usuariosPorCorreo.containsKey(correoNorm)) return null;
+        if (rol == Role.GERENTE && yaExisteGerente())  return null;
+
+        User usuario = new User(UUID.randomUUID().toString(), nombre, correoNorm, contrasena, rol);
+        usuariosPorCorreo.put(correoNorm, usuario);
+        usuariosPorId.put(usuario.getId(), usuario);
         return usuario;
     }
 
-    /**
-     * Valida las credenciales y retorna el usuario si son correctas.
-     * @return el usuario autenticado, o null si las credenciales son inválidas
-     */
+    /** Valida credenciales y retorna el usuario si son correctas. */
     public User iniciarSesion(String correo, String contrasena) {
-        String correoNormalizado = correo.trim().toLowerCase();
-        User usuario = usuariosPorCorreo.get(correoNormalizado);
+        String correoNorm = correo.trim().toLowerCase();
+        User usuario = usuariosPorCorreo.get(correoNorm);
         if (usuario != null && usuario.getContrasena().equals(contrasena)) {
             return usuario;
         }
         return null;
     }
 
-    /**
-     * Verifica si un correo ya está registrado en el sistema.
-     */
     public boolean correoExiste(String correo) {
         return usuariosPorCorreo.containsKey(correo.trim().toLowerCase());
     }
 
-    public Collection<User> obtenerTodosLosUsuarios() {
+    public boolean yaExisteGerente() {
+        return usuariosPorCorreo.values().stream()
+                .anyMatch(u -> u.getRol() == Role.GERENTE);
+    }
+
+    public User buscarPorId(String id) {
+        return usuariosPorId.get(id);
+    }
+
+    /** Retorna solo los desarrolladores registrados (para asignar tareas). */
+    public List<User> obtenerDesarrolladores() {
+        List<User> devs = new ArrayList<>();
+        for (User u : usuariosPorCorreo.values()) {
+            if (u.getRol() == Role.DESARROLLADOR) devs.add(u);
+        }
+        return devs;
+    }
+
+    public Collection<User> obtenerTodos() {
         return usuariosPorCorreo.values();
     }
 }

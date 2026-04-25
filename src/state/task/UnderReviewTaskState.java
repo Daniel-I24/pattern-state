@@ -19,7 +19,7 @@ public class UnderReviewTaskState implements TaskState {
 
     @Override
     public void completar(Task tarea) {
-        tarea.cambiarEstado(new CompletedTaskState(), "Revisión aprobada. Tarea completada.");
+        tarea.cambiarEstado(new PendingApprovalTaskState(), "Revisión interna aprobada. Esperando aprobación del gerente.");
     }
 
     @Override

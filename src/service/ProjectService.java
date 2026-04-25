@@ -8,8 +8,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Servicio que centraliza la lógica de negocio sobre proyectos.
- * Actúa como repositorio en memoria durante la ejecución.
+ * Servicio central que gestiona proyectos y tareas en memoria.
+ * Es la única fuente de verdad compartida entre todas las interfaces de usuario.
  */
 public class ProjectService {
 
@@ -21,10 +21,31 @@ public class ProjectService {
         return proyecto;
     }
 
-    public Task agregarTarea(Project proyecto, String titulo, String descripcion, String asignadoA) {
-        Task tarea = new Task(titulo, descripcion, asignadoA);
+    /**
+     * Agrega una tarea a un proyecto con orden de ejecución definido por el gerente.
+     * Las tareas con el mismo orden son paralelas; las de orden mayor son secuenciales.
+     */
+    public Task agregarTarea(Project proyecto, String titulo, String descripcion,
+                             String asignadoAId, String asignadoANombre, int orden) {
+        Task tarea = new Task(titulo, descripcion, asignadoAId, asignadoANombre, orden);
         proyecto.agregarTarea(tarea);
         return tarea;
+    }
+
+    /**
+     * El gerente aprueba una tarea. Si todas las tareas del grupo actual
+     * quedan aprobadas, el siguiente grupo se desbloquea automáticamente.
+     */
+    public void aprobarTarea(Project proyecto, Task tarea, String nombreGerente) {
+        tarea.aprobarPorGerente(nombreGerente);
+    }
+
+    /**
+     * El gerente rechaza una tarea con una justificación obligatoria.
+     */
+    public void rechazarTarea(Project proyecto, Task tarea,
+                              String nombreGerente, String justificacion) {
+        tarea.rechazarPorGerente(nombreGerente, justificacion);
     }
 
     public List<Project> obtenerTodos() {

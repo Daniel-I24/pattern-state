@@ -156,12 +156,53 @@ public final class AppTheme {
     /** Retorna el color de fondo asociado a un estado de tarea. */
     public static Color colorEstadoTarea(String estado) {
         return switch (estado) {
-            case "Pendiente"   -> new Color(0xF5F0E8);
-            case "En Progreso" -> new Color(0xCCE5FF);
-            case "En Revisión" -> new Color(0xFFF3CD);
-            case "Completada"  -> new Color(0xC8E6C9);
-            case "Bloqueada"   -> new Color(0xFFCDD2);
-            default            -> FONDO_PANEL;
+            case "Pendiente"                -> new Color(0xF5F0E8);
+            case "En Progreso"              -> new Color(0xCCE5FF);
+            case "En Revisión"              -> new Color(0xFFF3CD);
+            case "Pendiente de Aprobación"  -> new Color(0xFFE4B5);
+            case "Completada"               -> new Color(0xC8E6C9);
+            case "Bloqueada"                -> new Color(0xFFCDD2);
+            default                         -> FONDO_PANEL;
         };
+    }
+
+    /** Aplica un placeholder a un JTextField que desaparece al enfocar. */
+    public static void aplicarPlaceholder(JTextField campo, String placeholder) {
+        campo.setForeground(TEXTO_SECUNDARIO);
+        campo.setText(placeholder);
+        campo.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override public void focusGained(java.awt.event.FocusEvent e) {
+                if (campo.getText().equals(placeholder)) {
+                    campo.setText("");
+                    campo.setForeground(TEXTO_PRINCIPAL);
+                }
+            }
+            @Override public void focusLost(java.awt.event.FocusEvent e) {
+                if (campo.getText().trim().isEmpty()) {
+                    campo.setText(placeholder);
+                    campo.setForeground(TEXTO_SECUNDARIO);
+                }
+            }
+        });
+    }
+
+    /** Aplica un placeholder a un JTextArea que desaparece al enfocar. */
+    public static void aplicarPlaceholder(JTextArea area, String placeholder) {
+        area.setForeground(TEXTO_SECUNDARIO);
+        area.setText(placeholder);
+        area.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override public void focusGained(java.awt.event.FocusEvent e) {
+                if (area.getText().equals(placeholder)) {
+                    area.setText("");
+                    area.setForeground(TEXTO_PRINCIPAL);
+                }
+            }
+            @Override public void focusLost(java.awt.event.FocusEvent e) {
+                if (area.getText().trim().isEmpty()) {
+                    area.setText(placeholder);
+                    area.setForeground(TEXTO_SECUNDARIO);
+                }
+            }
+        });
     }
 }

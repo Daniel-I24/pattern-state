@@ -10,7 +10,7 @@ import java.awt.*;
 
 /**
  * Pantalla de registro de nuevos usuarios.
- * Permite elegir nombre, correo, contraseña y rol.
+ * El rol GERENTE no aparece en el selector si ya existe uno en el sistema.
  */
 public class RegisterPanel extends JPanel {
 
@@ -18,26 +18,34 @@ public class RegisterPanel extends JPanel {
     private final Runnable alRegistrarse;
     private final Runnable alIrALogin;
 
-    private final JTextField campoNombre;
-    private final JTextField campoCorreo;
+    private final JTextField     campoNombre;
+    private final JTextField     campoCorreo;
     private final JPasswordField campoContrasena;
     private final JPasswordField campoConfirmar;
     private final JComboBox<Role> comboRol;
-    private final JLabel etiquetaError;
+    private final JLabel         etiquetaError;
 
     public RegisterPanel(AuthService authService, Runnable alRegistrarse, Runnable alIrALogin) {
         this.authService   = authService;
         this.alRegistrarse = alRegistrarse;
         this.alIrALogin    = alIrALogin;
 
-        this.campoNombre     = AppTheme.campoTexto(24);
-        this.campoCorreo     = AppTheme.campoTexto(24);
+        this.campoNombre     = crearCampoConPlaceholder("Ej: Juan Pérez");
+        this.campoCorreo     = crearCampoConPlaceholder("Ej: juan@correo.com");
         this.campoContrasena = AppTheme.campoContrasena(24);
         this.campoConfirmar  = AppTheme.campoContrasena(24);
-        this.comboRol        = new JComboBox<>(Role.values());
+        this.comboRol        = new JComboBox<>(rolesDisponibles());
         this.etiquetaError   = new JLabel(" ");
 
         construirUI();
+    }
+
+    /** Retorna los roles disponibles según si ya existe un gerente. */
+    private Role[] rolesDisponibles() {
+        if (authService.yaExisteGerente()) {
+            return new Role[]{Role.DESARROLLADOR, Role.CLIENTE};
+        }
+        return Role.values();
     }
 
     private void construirUI() {
@@ -64,7 +72,6 @@ public class RegisterPanel extends JPanel {
         tarjeta.add(crearBotones());
         tarjeta.add(Box.createVerticalStrut(16));
         tarjeta.add(crearEnlaceLogin());
-
         return tarjeta;
     }
 
@@ -78,14 +85,14 @@ public class RegisterPanel extends JPanel {
         titulo.setForeground(AppTheme.ACENTO_PRIMARIO);
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel subtitulo = new JLabel("Completa los datos para registrarte");
-        subtitulo.setFont(AppTheme.FUENTE_NORMAL);
-        subtitulo.setForeground(AppTheme.TEXTO_SECUNDARIO);
-        subtitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JLabel sub = new JLabel("Completa los datos para registrarte");
+        sub.setFont(AppTheme.FUENTE_NORMAL);
+        sub.setForeground(AppTheme.TEXTO_SECUNDARIO);
+        sub.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         panel.add(titulo);
         panel.add(Box.createVerticalStrut(6));
-        panel.add(subtitulo);
+        panel.add(sub);
         return panel;
     }
 
@@ -97,26 +104,18 @@ public class RegisterPanel extends JPanel {
         gbc.fill   = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
 
-        String[] etiquetas = {"Nombre completo", "Correo electrónico", "Contraseña", "Confirmar contraseña"};
-        JComponent[] campos = {campoNombre, campoCorreo, campoContrasena, campoConfirmar};
+        String[]     etiquetas = {"Nombre completo", "Correo electrónico", "Contraseña", "Confirmar contraseña"};
+        JComponent[] campos    = {campoNombre, campoCorreo, campoContrasena, campoConfirmar};
 
         for (int i = 0; i < etiquetas.length; i++) {
             gbc.gridy = i * 2;
-            JLabel label = new JLabel(etiquetas[i]);
-            label.setFont(AppTheme.FUENTE_PEQUEÑA);
-            label.setForeground(AppTheme.TEXTO_SECUNDARIO);
-            panel.add(label, gbc);
-
+            panel.add(etiqueta(etiquetas[i]), gbc);
             gbc.gridy = i * 2 + 1;
             panel.add(campos[i], gbc);
         }
 
         gbc.gridy = 8;
-        JLabel labelRol = new JLabel("Rol");
-        labelRol.setFont(AppTheme.FUENTE_PEQUEÑA);
-        labelRol.setForeground(AppTheme.TEXTO_SECUNDARIO);
-        panel.add(labelRol, gbc);
-
+        panel.add(etiqueta("Rol en el sistema"), gbc);
         gbc.gridy = 9;
         comboRol.setFont(AppTheme.FUENTE_NORMAL);
         comboRol.setBackground(AppTheme.FONDO_PANEL);
@@ -137,12 +136,10 @@ public class RegisterPanel extends JPanel {
     private JPanel crearBotones() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         panel.setBackground(AppTheme.FONDO_PANEL);
-
-        JButton btnRegistrar = AppTheme.botonSecundario("Crear cuenta");
-        btnRegistrar.setPreferredSize(new Dimension(200, 40));
-        btnRegistrar.addActionListener(e -> intentarRegistro());
-
-        panel.add(btnRegistrar);
+        JButton btn = AppTheme.botonSecundario("Crear cuenta");
+        btn.setPreferredSize(new Dimension(200, 40));
+        btn.addActionListener(e -> intentarRegistro());
+        panel.add(btn);
         return panel;
     }
 
@@ -172,7 +169,7 @@ public class RegisterPanel extends JPanel {
         String correo     = campoCorreo.getText().trim();
         String contrasena = new String(campoContrasena.getPassword());
         String confirmar  = new String(campoConfirmar.getPassword());
-        Role rol          = (Role) comboRol.getSelectedItem();
+        Role   rol        = (Role) comboRol.getSelectedItem();
 
         if (nombre.isEmpty() || correo.isEmpty() || contrasena.isEmpty()) {
             etiquetaError.setText("Todos los campos son obligatorios.");
@@ -210,5 +207,33 @@ public class RegisterPanel extends JPanel {
         campoContrasena.setText("");
         campoConfirmar.setText("");
         etiquetaError.setText(" ");
+    }
+
+    private JLabel etiqueta(String texto) {
+        JLabel lbl = new JLabel(texto);
+        lbl.setFont(AppTheme.FUENTE_PEQUEÑA);
+        lbl.setForeground(AppTheme.TEXTO_SECUNDARIO);
+        return lbl;
+    }
+
+    private JTextField crearCampoConPlaceholder(String placeholder) {
+        JTextField campo = AppTheme.campoTexto(24);
+        campo.setForeground(AppTheme.TEXTO_SECUNDARIO);
+        campo.setText(placeholder);
+        campo.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override public void focusGained(java.awt.event.FocusEvent e) {
+                if (campo.getText().equals(placeholder)) {
+                    campo.setText("");
+                    campo.setForeground(AppTheme.TEXTO_PRINCIPAL);
+                }
+            }
+            @Override public void focusLost(java.awt.event.FocusEvent e) {
+                if (campo.getText().isEmpty()) {
+                    campo.setText(placeholder);
+                    campo.setForeground(AppTheme.TEXTO_SECUNDARIO);
+                }
+            }
+        });
+        return campo;
     }
 }

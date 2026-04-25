@@ -14,7 +14,7 @@ public class InProgressTaskState implements TaskState {
 
     @Override
     public void enviarARevision(Task tarea) {
-        tarea.cambiarEstado(new UnderReviewTaskState(), "Tarea enviada a revisión.");
+        tarea.cambiarEstado(new PendingApprovalTaskState(), "Tarea marcada como lista. Esperando aprobación del gerente.");
     }
 
     @Override
