@@ -222,13 +222,7 @@ public class ManagerDashboard extends JPanel {
         String creadoPor = SessionManager.getInstance().getUsuarioActivo().getNombre();
         Project nuevo = projectService.crearProyecto(nombre, desc, creadoPor);
         
-        // Debug: Verificar que el proyecto se creó
-        System.out.println("Proyecto creado: " + nuevo.getNombre());
-        System.out.println("Total de proyectos: " + projectService.obtenerTodos().size());
-        
         modeloLista.addElement(nuevo);
         listaProyectos.setSelectedValue(nuevo, true);
-        
-        // El listener de selección se encargará de mostrar el panel automáticamente
     }
 }
